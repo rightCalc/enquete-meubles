@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enquête : Meubles sur mesure et site web</title>
+    <style>
+        :root {
+            --primary: #5c4033;
+            --primary-light: #8b654e;
+            --accent: #d4a373;
+            --bg: #faf8f5;
+            --card-bg: #ffffff;
+            --text: #2c2523;
+            --text-muted: #6e6259;
+            --border: #e2dcd5;
+            --success: #2a7f62;
+            --danger: #d9534f;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px 15px 60px;
+        }
+        .container { max-width: 820px; margin: 0 auto; }
+        .header-card {
+            background: linear-gradient(135deg, var(--primary) 0%, #3d2a20 100%);
+            color: #fff;
+            padding: 35px 30px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px rgba(92, 64, 51, 0.15);
+        }
+        .header-card h1 { font-size: 1.85rem; margin-bottom: 8px; font-weight: 700; }
+        .subtitle {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 18px;
+        }
+        .intro-text {
+            font-size: 0.98rem;
+            opacity: 0.95;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.18);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+        }
+        .meta-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.9rem;
+        }
+        .meta-bar input[type="date"],
+        .meta-bar input[type="text"] {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: inherit;
+            color: var(--text);
+            font-weight: 500;
+        }
+        .progress-wrapper {
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            background: var(--card-bg);
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .progress-bar-bg {
+            flex-grow: 1;
+            height: 10px;
+            background: #eee9e2;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+        .progress-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary);
+            min-width: 90px;
+            text-align: right;
+        }
+        .theme-section { margin-bottom: 30px; }
+        .theme-title {
+            font-size: 1.15rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent);
+            font-weight: 700;
+        }
+        .question-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px 25px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            transition: all 0.25s ease;
+        }
+        .question-card:hover { border-color: #cbbba8; }
+        .question-card.skipped {
+            opacity: 0.4;
+            pointer-events: none;
+            background: #f4f1ed;
+            border-style: dashed;
+        }
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .question-title { font-weight: 600; font-size: 1.05rem; color: var(--text); }
+        .q-num { color: var(--primary); font-weight: 700; margin-right: 6px; }
+        .badge {
+            font-size: 0.78rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .badge-single { background: #eef4f8; color: #2b5c8f; }
+        .badge-multi { background: #fdf3e7; color: #9c5d16; }
+        .skip-notice {
+            display: none;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 10px;
+            background: #e9e4dd;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+        .question-card.skipped .skip-notice { display: block; }
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        @media (min-width: 600px) {
+            .options-grid.two-cols { grid-template-columns: 1fr 1fr; }
+        }
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            background: #fff;
+        }
+        .option-label:hover { background: #fcfaf7; border-color: var(--primary-light); }
+        .option-label input[type="radio"],
+        .option-label input[type="checkbox"] {
+            width: 19px;
+            height: 19px;
+            margin-right: 12px;
+            accent-color: var(--primary);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .option-label.selected {
+            border-color: var(--primary);
+            background-color: #f7f2ec;
+            font-weight: 500;
+        }
+        .branch-hint {
+            margin-left: auto;
+            font-size: 0.78rem;
+            color: var(--primary-light);
+            background: rgba(92, 64, 51, 0.08);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .input-number {
+            width: 140px;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .input-number:focus { outline: none; border-color: var(--primary); }
+        .limit-warning {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 8px;
+            display: none;
+            font-weight: 500;
+        }
+        .actions-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 35px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border);
+        }
+        .btn {
+            padding: 13px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(92, 64, 51, 0.25);
+        }
+        .btn-primary:hover { background: #463026; transform: translateY(-1px); }
+        .btn-secondary { background: #e9e4dd; color: var(--text); }
+        .btn-secondary:hover { background: #dcd5cb; }
+        #result-panel {
+            display: none;
+            margin-top: 30px;
+            background: #fff;
+            border: 2px solid var(--success);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+        #result-panel h3 { color: var(--success); margin-bottom: 12px; font-size: 1.3rem; }
+        .summary-list { list-style: none; margin: 15px 0 20px; border-top: 1px solid var(--border); }
+        .summary-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            font-size: 0.95rem;
+        }
+        .summary-list strong { color: var(--primary); }
+        .footer-note { text-align: center; margin-top: 35px; color: var(--text-muted); font-weight: 500; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-card">
+        <span class="subtitle">⏱️ Questionnaire anonyme • Environ 3 minutes</span>
+        <h1>Enquête : Meubles sur mesure et site web</h1>
+        <p class="intro-text">
+            « Bonjour, je suis étudiant, auriez-vous 2 minutes à accorder pour une enquête sur la création d'un site web ? L'objectif est de comprendre vos habitudes et vos attentes en matière de mobilier. Vos réponses sont anonymes. »
+        </p>
+        <div class="meta-bar">
+            <div>
+                <strong>Consignes :</strong> ⚪ = 1 seule réponse &nbsp;|&nbsp; ☑️ = Plusieurs réponses (max. 2) &nbsp;|&nbsp; Les renvois (→) sont automatiques.
+            </div>
+            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                <label>Date : <input type="date" id="survey-date"></label>
+                <label>Enquêteur : <input type="text" id="survey-interviewer" value="Florian Bouillet"></label>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-wrapper">
+        <span style="font-size:0.9rem; font-weight:600;">Progression :</span>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <span class="progress-label" id="progress-text">0 % complété</span>
+    </div>
+
+    <form id="survey-form">
+        <div class="theme-section">
+            <h2 class="theme-title">Thème 1 : Vos habitudes d'achat de mobilier</h2>
+
+            <div class="question-card" id="card-q1" data-question="Q1">
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q1.</span>En règle générale, à quelle fréquence achetez-vous de nouveaux meubles ?</div>
+                    <span class="badge badge-single">1 réponse</span>
+                </div>
+                <div class="options-grid two-cols">
+                    <label class="option-label"><input type="radio" name="Q1" value="Une fois par an"> Une fois par an</label>
+                    <label class="option-label"><input type="radio" name="Q1" value="Plusieurs fois par an"> Plusieurs fois par an</label>
+                    <label class="option-label"><input type="radio" name="Q1" value="Une fois tous les 2 à 5 ans"> Une fois tous les 2 à 5 ans</label>
+                    <label class="option-label"><input type="radio" name="Q1" value="Plus de 5 ans"> Plus de 5 ans</label>
+                </div>
+            </div>
+
+            <div class="question-card" id="card-q2" data-question="Q2">
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q2.</span>Avez-vous déjà fait fabriquer un meuble par un artisan (menuisier, ébéniste) ?</div>
+                    <span class="badge badge-single">1 réponse</span>
+                </div>
+                <div class="options-grid two-cols">
+                    <label class="option-label"><input type="radio" name="Q2" value="Oui"> Oui</label>
+                    <label class="option-label"><input type="radio" name="Q2" value="Non"> Non</label>
+                </div>
+            </div>
+
+            <div class="question-card" id="card-q2_1" data-question="Q2.1">
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q2.1.</span>Envisagez-vous de faire fabriquer un meuble par un artisan dans les 12 prochains mois ?</div>
+                    <span class="badge badge-single">1 réponse</span>
+                </div>
+                <div class="options-grid two-cols">
+                    <label class="option-label"><input type="radio" name="Q2.1" value="Oui"> Oui <span class="branch-hint">→ Q2.2</span></label>
+                    <label class="option-label"><input type="radio" name="Q2.1" value="Non"> Non <span class="branch-hint">→ Q2.3</span></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-section">
+            <h2 class="theme-title">Thème 2 : Vos attentes & projets de mobilier</h2>
+
+            <div class="question-card" id="card-q2_2" data-question="Q2.2">
+                <div class="skip-notice">⏭️ Question non applicable selon votre réponse à la Q2.1 (passage direct à Q2.3).</div>
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q2.2.</span>Pour quelles raisons envisagez-vous cet achat ?</div>
+                    <span class="badge badge-multi">2 réponses max.</span>
+                </div>
+                <div class="options-grid two-cols" data-max="2">
+                    <label class="option-label"><input type="checkbox" name="Q2.2" value="Son prix"> Son prix <span class="branch-hint">→ Q3</span></label>
+                    <label class="option-label"><input type="checkbox" name="Q2.2" value="Sa résistance à l'usage"> Sa résistance à l'usage <span class="branch-hint">→ Q3</span></label>
+                    <label class="option-label"><input type="checkbox" name="Q2.2" value="Son aspect visuel"> Son aspect visuel <span class="branch-hint">→ Q3</span></label>
+                    <label class="option-label"><input type="checkbox" name="Q2.2" value="Sa personnalisation"> Sa personnalisation <span class="branch-hint">→ Q3</span></label>
+                    <label class="option-label"><input type="checkbox" name="Q2.2" value="Son impact environnemental"> Son impact environnemental <span class="branch-hint">→ Q3</span></label>
+                </div>
+                <div class="limit-warning">⚠️ Vous ne pouvez sélectionner que 2 réponses maximum pour cette question.</div>
+            </div>
+
+            <div class="question-card" id="card-q2_3" data-question="Q2.3">
+                <div class="skip-notice">⏭️ Question ignorée car vous avez répondu « Oui » à la Q2.1 (passage direct à Q3).</div>
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q2.3.</span>Pour quelles raisons n'envisagez-vous pas cet achat dans les 12 prochains mois ?</div>
+                    <span class="badge badge-multi">2 réponses max.</span>
+                </div>
+                <div class="options-grid two-cols" data-max="2">
+                    <label class="option-label"><input type="checkbox" name="Q2.3" value="Aucun besoin de nouveau meuble"> Aucun besoin de nouveau meuble</label>
+                    <label class="option-label"><input type="checkbox" name="Q2.3" value="Un budget réservé à d'autres dépenses"> Un budget réservé à d'autres dépenses</label>
+                    <label class="option-label"><input type="checkbox" name="Q2.3" value="Une préférence pour un meuble déjà fabriqué"> Une préférence pour un meuble déjà fabriqué</label>
+                    <label class="option-label"><input type="checkbox" name="Q2.3" value="Un manque d'informations sur l'offre des artisans"> Un manque d'informations sur l'offre des artisans</label>
+                    <label class="option-label"><input type="checkbox" name="Q2.3" value="Le coût d'un meuble sur mesure me semble trop élevé"> Le coût d'un meuble sur mesure me semble trop élevé</label>
+                    <label class="option-label"><input type="checkbox" name="Q2.3" value="Les délais de fabrication me semblent trop longs"> Les délais de fabrication me semblent trop longs</label>
+                </div>
+                <div class="limit-warning">⚠️ Vous ne pouvez sélectionner que 2 réponses maximum pour cette question.</div>
+            </div>
+
+            <div class="question-card" id="card-q3" data-question="Q3">
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q3.</span>Au cours des 12 prochains mois, combien de fois pensez-vous consulter le site du menuisier ?</div>
+                    <span class="badge badge-single">1 réponse</span>
+                </div>
+                <div class="options-grid two-cols">
+                    <label class="option-label"><input type="radio" name="Q3" value="Aucune fois"> Aucune fois <span class="branch-hint">→ Q10</span></label>
+                    <label class="option-label"><input type="radio" name="Q3" value="Une fois"> Une fois</label>
+                    <label class="option-label"><input type="radio" name="Q3" value="Deux à trois fois"> Deux à trois fois</label>
+                    <label class="option-label"><input type="radio" name="Q3" value="Quatre fois ou plus"> Quatre fois ou plus</label>
+                </div>
+            </div>
+
+            <div class="question-card" id="card-q3_1" data-question="Q3.1">
+                <div class="skip-notice">⏭️ Question ignorée suite à votre réponse « Aucune fois » à la Q3 (renvoi vers Q10).</div>
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q3.1.</span>Qu'est-ce qui vous inciterait à consulter ce site plus souvent ?</div>
+                    <span class="badge badge-multi">2 réponses max.</span>
+                </div>
+                <div class="options-grid two-cols" data-max="2">
+                    <label class="option-label"><input type="checkbox" name="Q3.1" value="De nouvelles photos de réalisations"> De nouvelles photos de réalisations</label>
+                    <label class="option-label"><input type="checkbox" name="Q3.1" value="Des offres ou nouveautés disponibles"> Des offres ou nouveautés disponibles</label>
+                    <label class="option-label"><input type="checkbox" name="Q3.1" value="Des conseils pour choisir ou entretenir ses meubles"> Des conseils pour choisir ou entretenir ses meubles</label>
+                    <label class="option-label"><input type="checkbox" name="Q3.1" value="La possibilité de suivre un projet ou une commande"> La possibilité de suivre un projet ou une commande</label>
+                </div>
+                <div class="limit-warning">⚠️ Vous ne pouvez sélectionner que 2 réponses maximum pour cette question.</div>
+            </div>
+
+            <div class="question-card" id="card-q4" data-question="Q4">
+                <div class="skip-notice">⏭️ Question ignorée suite à votre réponse « Aucune fois » à la Q3 (renvoi vers Q10).</div>
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q4.</span>Dans quel(s) but(s) consulteriez-vous le site du menuisier ?</div>
+                    <span class="badge badge-multi">2 réponses max.</span>
+                </div>
+                <div class="options-grid two-cols" data-max="2">
+                    <label class="option-label"><input type="checkbox" name="Q4" value="Voir des réalisations"> Voir des réalisations</label>
+                    <label class="option-label"><input type="checkbox" name="Q4" value="Demander un devis"> Demander un devis</label>
+                    <label class="option-label"><input type="checkbox" name="Q4" value="Trouver les coordonnées"> Trouver les coordonnées</label>
+                    <label class="option-label"><input type="checkbox" name="Q4" value="Acheter en ligne un meuble déjà fabriqué"> Acheter en ligne un meuble déjà fabriqué</label>
+                    <label class="option-label"><input type="checkbox" name="Q4" value="Consulter un article sur le travail du bois"> Consulter un article sur le travail du bois</label>
+                </div>
+                <div class="limit-warning">⚠️ Vous ne pouvez sélectionner que 2 réponses maximum pour cette question.</div>
+            </div>
+
+            <div class="question-card" id="card-q5" data-question="Q5">
+                <div class="skip-notice">⏭️ Question ignorée suite à votre réponse « Aucune fois » à la Q3 (renvoi vers Q10).</div>
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q5.</span>Pour le fond des pages de ce site, lequel préféreriez-vous ?</div>
+                    <span class="badge badge-single">1 réponse</span>
+                </div>
+                <div class="options-grid">
+                    <label class="option-label"><input type="radio" name="Q5" value="Un fond clair (blanc ou beige)"> Un fond clair (blanc ou beige)</label>
+                    <label class="option-label"><input type="radio" name="Q5" value="Un fond foncé (gris foncé ou brun foncé)"> Un fond foncé (gris foncé ou brun foncé)</label>
+                    <label class="option-label"><input type="radio" name="Q5" value="Sans avis"> Sans avis</label>
+                </div>
+            </div>
+
+            <div class="question-card" id="card-q6" data-question="Q6">
+                <div class="skip-notice">⏭️ Question ignorée suite à votre réponse « Aucune fois » à la Q3 (renvoi vers Q10).</div>
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q6.</span>Quel budget maximal prévoyez-vous généralement d'allouer pour l'achat d'un meuble principal ? <em>(ex : cadre de lit)</em></div>
+                    <span class="badge badge-single">1 réponse</span>
+                </div>
+                <div class="options-grid two-cols">
+                    <label class="option-label"><input type="radio" name="Q6" value="Moins de 500 €"> Moins de 500 €</label>
+                    <label class="option-label"><input type="radio" name="Q6" value="De 500 € à 1000 €"> De 500 € à 1000 €</label>
+                    <label class="option-label"><input type="radio" name="Q6" value="De 1001 € à 2000 €"> De 1001 € à 2000 €</label>
+                    <label class="option-label"><input type="radio" name="Q6" value="Plus de 2000 €"> Plus de 2000 €</label>
+                </div>
+            </div>
+
+            <div class="question-card" id="card-q6_1" data-question="Q6.1">
+                <div class="skip-notice">⏭️ Question ignorée suite à votre réponse « Aucune fois » à la Q3 (renvoi vers Q10).</div>
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q6.1.</span>[Relance de la Q6] Seriez-vous prêt(e) à dépasser ce budget préétabli pour un meuble unique et fabriqué sur-mesure ?</div>
+                    <span class="badge badge-single">1 réponse</span>
+                </div>
+                <div class="options-grid">
+                    <label class="option-label"><input type="radio" name="Q6.1" value="Oui"> Oui</label>
+                    <label class="option-label"><input type="radio" name="Q6.1" value="Non"> Non</label>
+                    <label class="option-label"><input type="radio" name="Q6.1" value="Peut-être, si j'ai un coup de cœur"> Peut-être, si j'ai un coup de cœur</label>
+                </div>
+            </div>
+
+            <div class="question-card" id="card-q7" data-question="Q7">
+                <div class="skip-notice">⏭️ Question ignorée suite à votre réponse « Aucune fois » à la Q3 (renvoi vers Q10).</div>
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q7.</span>Quel délai d'attente maximal accepteriez-vous pour la création et la livraison d'un meuble sur-mesure ?</div>
+                    <span class="badge badge-single">1 réponse</span>
+                </div>
+                <div class="options-grid two-cols">
+                    <label class="option-label"><input type="radio" name="Q7" value="Moins de 1 mois"> Moins de 1 mois</label>
+                    <label class="option-label"><input type="radio" name="Q7" value="1 à 2 mois"> 1 à 2 mois</label>
+                    <label class="option-label"><input type="radio" name="Q7" value="3 à 4 mois"> 3 à 4 mois</label>
+                    <label class="option-label"><input type="radio" name="Q7" value="Plus de 4 mois"> Plus de 4 mois</label>
+                </div>
+            </div>
+
+            <div class="question-card" id="card-q8" data-question="Q8">
+                <div class="skip-notice">⏭️ Question ignorée suite à votre réponse « Aucune fois » à la Q3 (renvoi vers Q10).</div>
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q8.</span>Seriez-vous intéressé(e) par l'achat en ligne de meubles déjà fabriqués, proposés à prix fixe (par exemple, des étagères ou des tables basses) ?</div>
+                    <span class="badge badge-single">1 réponse</span>
+                </div>
+                <div class="options-grid two-cols">
+                    <label class="option-label"><input type="radio" name="Q8" value="Oui"> Oui</label>
+                    <label class="option-label"><input type="radio" name="Q8" value="Non"> Non</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-section" id="section-theme3">
+            <h2 class="theme-title">Thème 3 : Profil personnel</h2>
+
+            <div class="question-card" id="card-q10" data-question="Q10">
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q10.</span>Résidez-vous actuellement en Savoie ou Haute-Savoie ?</div>
+                    <span class="badge badge-single">1 réponse</span>
+                </div>
+                <div class="options-grid two-cols">
+                    <label class="option-label"><input type="radio" name="Q10" value="Oui"> Oui</label>
+                    <label class="option-label"><input type="radio" name="Q10" value="Non"> Non</label>
+                </div>
+            </div>
+
+            <div class="question-card" id="card-q11" data-question="Q11">
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q11.</span>Quelle est votre situation actuelle en matière de logement ?</div>
+                    <span class="badge badge-single">1 réponse</span>
+                </div>
+                <div class="options-grid two-cols">
+                    <label class="option-label"><input type="radio" name="Q11" value="Propriétaire d'une maison"> Propriétaire d'une maison</label>
+                    <label class="option-label"><input type="radio" name="Q11" value="Propriétaire d'un appartement"> Propriétaire d'un appartement</label>
+                    <label class="option-label"><input type="radio" name="Q11" value="Locataire d'une maison"> Locataire d'une maison</label>
+                    <label class="option-label"><input type="radio" name="Q11" value="Locataire d'un appartement"> Locataire d'un appartement</label>
+                    <label class="option-label"><input type="radio" name="Q11" value="Autre situation"> Autre situation</label>
+                </div>
+            </div>
+
+            <div class="question-card" id="card-q12" data-question="Q12">
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q12.</span>Quel est votre âge ?</div>
+                    <span class="badge badge-single">1 réponse</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <label for="input-age" style="font-weight:500;">Âge :</label>
+                    <input type="number" id="input-age" name="Q12" class="input-number" min="15" max="110" placeholder="Ex : 34">
+                    <span>ans</span>
+                </div>
+            </div>
+
+            <div class="question-card" id="card-q13" data-question="Q13">
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q13.</span>Quelle est votre catégorie socio-professionnelle (CSP) ?</div>
+                    <span class="badge badge-single">1 réponse</span>
+                </div>
+                <div class="options-grid two-cols">
+                    <label class="option-label"><input type="radio" name="Q13" value="Artisan, commerçant, chef d'entreprise"> Artisan, commerçant, chef d'entreprise</label>
+                    <label class="option-label"><input type="radio" name="Q13" value="Cadre ou profession intellectuelle supérieure"> Cadre ou profession intellectuelle supérieure</label>
+                    <label class="option-label"><input type="radio" name="Q13" value="Profession intermédiaire"> Profession intermédiaire</label>
+                    <label class="option-label"><input type="radio" name="Q13" value="Employé / Ouvrier"> Employé / Ouvrier</label>
+                    <label class="option-label"><input type="radio" name="Q13" value="Retraité"> Retraité</label>
+                    <label class="option-label"><input type="radio" name="Q13" value="Autre / Sans activité professionnelle"> Autre / Sans activité professionnelle</label>
+                </div>
+            </div>
+
+            <div class="question-card" id="card-q14" data-question="Q14">
+                <div class="question-header">
+                    <div class="question-title"><span class="q-num">Q14.</span>Quel est votre sexe ?</div>
+                    <span class="badge badge-single">1 réponse par déduction</span>
+                </div>
+                <div class="options-grid two-cols">
+                    <label class="option-label"><input type="radio" name="Q14" value="Femme"> Femme</label>
+                    <label class="option-label"><input type="radio" name="Q14" value="Homme"> Homme</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions-bar">
+            <button type="button" class="btn btn-secondary" id="btn-reset">🔄 Réinitialiser le formulaire</button>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-secondary" id="btn-csv">📊 Exporter les réponses (CSV)</button>
+                <button type="submit" class="btn btn-primary">✅ Valider et voir le récapitulatif</button>
+            </div>
+        </div>
+    </form>
+
+    <div id="result-panel">
+        <h3>🎉 Merci pour votre retour, bonne journée !</h3>
+        <p>Voici le récapitulatif des réponses saisies pour cet entretien :</p>
+        <ul class="summary-list" id="summary-list"></ul>
+        <button type="button" class="btn btn-primary" onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
+    </div>
+
+    <p class="footer-note">Enquête administrée par Florian Bouillet • Questionnaire interactif</p>
+</div>
+
+<script>
+    document.getElementById('survey-date').valueAsDate = new Date();
+    const form = document.getElementById('survey-form');
+    const allInputs = form.querySelectorAll('input');
+
+    allInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            if (this.type === 'checkbox') {
+                const grid = this.closest('.options-grid');
+                const max = parseInt(grid.getAttribute('data-max') || '99', 10);
+                const checkedBoxes = grid.querySelectorAll('input[type="checkbox"]:checked');
+                const warning = this.closest('.question-card').querySelector('.limit-warning');
+
+                if (checkedBoxes.length > max) {
+                    this.checked = false;
+                    if (warning) {
+                        warning.style.display = 'block';
+                        setTimeout(() => { warning.style.display = 'none'; }, 3500);
+                    }
+                    return;
+                } else if (warning) {
+                    warning.style.display = 'none';
+                }
+            }
+            updateVisualSelection();
+            applyBranchingLogic();
+            updateProgress();
+        });
+    });
+
+    document.getElementById('input-age').addEventListener('input', updateProgress);
+
+    function updateVisualSelection() {
+        document.querySelectorAll('.option-label').forEach(label => {
+            const input = label.querySelector('input');
+            if (input && input.checked) label.classList.add('selected');
+            else label.classList.remove('selected');
+        });
+    }
+
+    function setCardSkipped(cardId, isSkipped) {
+        const card = document.getElementById(cardId);
+        if (!card) return;
+        if (isSkipped) {
+            card.classList.add('skipped');
+            card.querySelectorAll('input').forEach(inp => {
+                if (inp.type === 'checkbox' || inp.type === 'radio') inp.checked = false;
+                else inp.value = '';
+            });
+        } else {
+            card.classList.remove('skipped');
+        }
+    }
+
+    function applyBranchingLogic() {
+        const q2_1 = form.querySelector('input[name="Q2.1"]:checked');
+        if (q2_1) {
+            if (q2_1.value === 'Oui') {
+                setCardSkipped('card-q2_2', false);
+                setCardSkipped('card-q2_3', true);
+            } else if (q2_1.value === 'Non') {
+                setCardSkipped('card-q2_2', true);
+                setCardSkipped('card-q2_3', false);
+            }
+        } else {
+            setCardSkipped('card-q2_2', false);
+            setCardSkipped('card-q2_3', false);
+        }
+
+        const q3 = form.querySelector('input[name="Q3"]:checked');
+        const siteQuestions = ['card-q3_1', 'card-q4', 'card-q5', 'card-q6', 'card-q6_1', 'card-q7', 'card-q8'];
+        if (q3 && q3.value === 'Aucune fois') {
+            siteQuestions.forEach(id => setCardSkipped(id, true));
+        } else {
+            siteQuestions.forEach(id => setCardSkipped(id, false));
+        }
+        updateVisualSelection();
+    }
+
+    function updateProgress() {
+        const activeCards = Array.from(document.querySelectorAll('.question-card:not(.skipped)'));
+        let answeredCount = 0;
+        activeCards.forEach(card => {
+            const checked = card.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"]:checked');
+            const numInput = card.querySelector('input[type="number"]');
+            if (checked.length > 0 || (numInput && numInput.value.trim() !== '')) answeredCount++;
+        });
+        const pct = activeCards.length > 0 ? Math.round((answeredCount / activeCards.length) * 100) : 0;
+        document.getElementById('progress-fill').style.width = pct + '%';
+        document.getElementById('progress-text').textContent = pct + ' % complété';
+    }
+
+    function collectFormData() {
+        const data = {
+            "Date": document.getElementById('survey-date').value || 'Non renseignée',
+            "Enquêteur": document.getElementById('survey-interviewer').value || 'Florian Bouillet'
+        };
+        document.querySelectorAll('.question-card').forEach(card => {
+            const qCode = card.getAttribute('data-question');
+            if (card.classList.contains('skipped')) {
+                data[qCode] = "Non concerné (Saut automatique)";
+                return;
+            }
+            const checked = Array.from(card.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"]:checked')).map(i => i.value);
+            const numInput = card.querySelector('input[type="number"]');
+            if (numInput) data[qCode] = numInput.value ? numInput.value + " ans" : "Sans réponse";
+            else data[qCode] = checked.length > 0 ? checked.join(' ; ') : "Sans réponse";
+        });
+        return data;
+    }
+
+    form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = collectFormData();
+
+    // URL de votre application web Google Apps Script récupérée à l'étape 3
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzlLRmNVepoZC4KvjEB8HZlMtrpEEEI2I1_QwHmWjXR5OC2hSfvXqvX9HVcxTRxcwvI/exec';
+
+    // Envoyer les données vers Google Drive / Google Sheets
+    fetch(scriptURL, {
+        method: 'POST',
+        mode: 'no-cors', // Nécessaire pour contourner les restrictions cross-origin du navigateur
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    }).then(() => {
+        // Affichage du récapitulatif local une fois envoyé
+        const summaryList = document.getElementById('summary-list');
+        summaryList.innerHTML = '';
+
+        for (const [key, val] of Object.entries(data)) {
+            const li = document.createElement('li');
+            li.innerHTML = `<strong>${key}</strong> <span>${val}</span>`;
+            summaryList.appendChild(li);
+        }
+
+        const panel = document.getElementById('result-panel');
+        panel.style.display = 'block';
+        panel.scrollIntoView({ behavior: 'smooth' });
+    }).catch(error => {
+        alert('Erreur lors de l’enregistrement des réponses : ' + error);
+    });
+});
+
+    document.getElementById('btn-csv').addEventListener('click', function() {
+        const data = collectFormData();
+        const headers = Object.keys(data);
+        const values = Object.values(data).map(v => `"${String(v).replace(/"/g, '""')}"`);
+        const csvContent = "\uFEFF" + headers.join(";") + "\n" + values.join(";");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Reponse_Enquete_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', function() {
+        if (confirm("Voulez-vous vraiment effacer toutes les réponses actuelles pour démarrer un nouveau questionnaire ?")) {
+            form.reset();
+            document.getElementById('survey-date').valueAsDate = new Date();
+            document.getElementById('result-panel').style.display = 'none';
+            applyBranchingLogic();
+            updateVisualSelection();
+            updateProgress();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+</script>
+</body>
+</html>
